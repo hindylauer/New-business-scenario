@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS dbo.BikeSales;
 GO
 
 CREATE TABLE dbo.BikeSales (
-    BikeSalesId INT NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+    BikeSalesId INT NOT NULL IDENTITY PRIMARY KEY,
     CustomerFirstName VARCHAR(50) NOT NULL
         CONSTRAINT c_BikeSales_CustomerFirstName_NotBlank CHECK (CustomerFirstName <> ''),
     CustomerLastName VARCHAR(50) NOT NULL
@@ -65,7 +65,8 @@ CREATE TABLE dbo.BikeSales (
         CONSTRAINT c_BikeSales_BikeCondition_NotBlank CHECK (BikeCondition IS NULL OR BikeCondition <> ''),
         CONSTRAINT c_BikeSales_BikeCondition_Allowed CHECK (BikeCondition IS NULL OR BikeCondition IN ('Perfect', 'Minor Fixup', 'Major Fixup', 'Restoration')),
         CONSTRAINT c_BikeSales_BikeCondition_Requirement CHECK ((BikeStatus = 'Used' AND BikeCondition IS NOT NULL) OR (BikeStatus = 'New' AND BikeCondition IS NULL)),
-    CONSTRAINT c_BikeSales_CustomerSameDayPurchase CHECK (BikeSalesId > 0)
+    CustomerDailyPurchaseSlot AS ((BikeSalesId - 1) % 2) PERSISTED,
+    CONSTRAINT u_BikeSales_CustomerDailyPurchaseLimit UNIQUE (CustomerPhoneNumber, SaleDate, CustomerDailyPurchaseSlot)
 );
 GO
 
@@ -77,18 +78,18 @@ INSERT INTO BikeSales (
     PurchaseDate, SaleDate, Season, PurchasePrice, SalePrice,
     BikeStatus, BikeCondition
 )
-SELECT 'Shmuel', 'Bitton', '4 Sparrow Drive', 'Spring Valley', 'NY', '10977', '845-425-9501', 'Schwinn', '24"', 'Black', '2022-07-20', '2022-09-15', 'Summer', 110.00, 220.00, 'New', NULL UNION ALL
-SELECT 'Jack', 'Sullivan', '1889 Fifty Second Street', 'Brooklyn', 'NY', '11218', '718-350-4401', 'Trek', '24"', 'Gray', '2023-01-26', '2023-05-11', 'Spring', 150.00, 250.00, 'New', NULL UNION ALL
-SELECT 'Rochel', 'Cohen', '95 Francis Place', 'Spring Valley', 'NY', '10977', '845-371-2052', 'Huffy', '16"', 'Pink', '2023-03-13', '2023-06-18', 'Spring', 30.00, 85.00, 'New', NULL UNION ALL
-SELECT 'Meir', 'Stern', '7 Bluejay Street', 'Spring Valley', 'NY', '10977', '845-426-9806', 'Razor', '20"', 'Slate', '2023-08-06', '2023-10-26', 'Fall', 17.00, 61.00, 'Used', 'Restoration' UNION ALL
-SELECT 'Yehuda', 'Gluck', '11 Parness Rd. #3', 'South Fallsburg', 'NY', '12733', '845-434-4011', 'Kent', '26"', 'Black', '2024-01-08', '2024-02-19', 'Winter', 120.00, 250.00, 'New', NULL UNION ALL
-SELECT 'Gedallia', 'Gold', '2036 Park Avenue', 'Lakewood', 'NJ', '08701', '732-930-6402', 'Trek', '20"', 'Blue', '2022-05-12', '2024-02-07', 'Winter', 105.00, 200.00, 'Used', 'Minor Fixup' UNION ALL
-SELECT 'Binyomin', 'Shapiro', '66 Carlton Road', 'Monsey', 'NY', '10952', '845-356-9027', 'Schwinn', '26"', 'Gray', '2022-04-22', '2024-01-09', 'Winter', 150.00, 135.00, 'Used', 'Perfect' UNION ALL
-SELECT 'Malka', 'Fischer', '80 Twin Avenue', 'Spring Valley', 'NY', '10977', '845-425-9002', 'Malibu', '18"', 'Pink', '2022-12-04', '2023-06-23', 'Summer', 90.00, 120.00, 'New', NULL UNION ALL
-SELECT 'Yonason', 'Katz', '1470 E 26th Street', 'Brooklyn', 'NY', '11223', '718-376-2658', 'Huffy', '20"', 'Blue', '2023-06-14', '2023-08-03', 'Summer', 76.00, 130.00, 'New', NULL UNION ALL
-SELECT 'Bracha', 'Smith', '25 North Rigaud Road', 'Spring Valley', 'NY', '10977', '845-352-1099', 'Razor', '24"', 'Slate', '2023-05-18', '2023-07-22', 'Summer', 167.00, 220.00, 'New', NULL UNION ALL
-SELECT 'Moshe', 'Weiss', '25 Old Nyack Turnpike', 'Monsey', 'NY', '10952', '845-356-9423', 'Kent', '24"', 'Black', '2022-12-13', '2023-08-16', 'Summer', 103.00, 195.00, 'Used', 'Minor Fixup' UNION ALL
-SELECT 'Yehuda', 'Jacobs', '1650 Lexington Avenue', 'Lakewood', 'NJ', '08701', '732-930-8054', 'Schwinn', '20"', 'Blue', '2022-04-09', '2022-07-20', 'Summer', 42.00, 98.00, 'Used', 'Major Fixup';
+SELECT 'Shmuel', 'Bitton', '4 Sparrow Drive', 'Spring Valley', 'NY', '10977', '845-425-9501', 'Schwinn', '24"', 'Black', '2022-07-20', '2022-09-15', 'Summer', 110.00, 220.00, 'New', NULL
+UNION SELECT 'Jack', 'Sullivan', '1889 Fifty Second Street', 'Brooklyn', 'NY', '11218', '718-350-4401', 'Trek', '24"', 'Gray', '2023-01-26', '2023-05-11', 'Spring', 150.00, 250.00, 'New', NULL
+UNION SELECT 'Rochel', 'Cohen', '95 Francis Place', 'Spring Valley', 'NY', '10977', '845-371-2052', 'Huffy', '16"', 'Pink', '2023-03-13', '2023-06-18', 'Spring', 30.00, 85.00, 'New', NULL
+UNION SELECT 'Meir', 'Stern', '7 Bluejay Street', 'Spring Valley', 'NY', '10977', '845-426-9806', 'Razor', '20"', 'Slate', '2023-08-06', '2023-10-26', 'Fall', 17.00, 61.00, 'Used', 'Restoration'
+UNION SELECT 'Yehuda', 'Gluck', '11 Parness Rd. #3', 'South Fallsburg', 'NY', '12733', '845-434-4011', 'Kent', '26"', 'Black', '2024-01-08', '2024-02-19', 'Winter', 120.00, 250.00, 'New', NULL
+UNION SELECT 'Gedallia', 'Gold', '2036 Park Avenue', 'Lakewood', 'NJ', '08701', '732-930-6402', 'Trek', '20"', 'Blue', '2022-05-12', '2024-02-07', 'Winter', 105.00, 200.00, 'Used', 'Minor Fixup'
+UNION SELECT 'Binyomin', 'Shapiro', '66 Carlton Road', 'Monsey', 'NY', '10952', '845-356-9027', 'Schwinn', '26"', 'Gray', '2022-04-22', '2024-01-09', 'Winter', 150.00, 135.00, 'Used', 'Perfect'
+UNION SELECT 'Malka', 'Fischer', '80 Twin Avenue', 'Spring Valley', 'NY', '10977', '845-425-9002', 'Malibu', '18"', 'Pink', '2022-12-04', '2023-06-23', 'Summer', 90.00, 120.00, 'New', NULL
+UNION SELECT 'Yonason', 'Katz', '1470 E 26th Street', 'Brooklyn', 'NY', '11223', '718-376-2658', 'Huffy', '20"', 'Blue', '2023-06-14', '2023-08-03', 'Summer', 76.00, 130.00, 'New', NULL
+UNION SELECT 'Bracha', 'Smith', '25 North Rigaud Road', 'Spring Valley', 'NY', '10977', '845-352-1099', 'Razor', '24"', 'Slate', '2023-05-18', '2023-07-22', 'Summer', 167.00, 220.00, 'New', NULL
+UNION SELECT 'Moshe', 'Weiss', '25 Old Nyack Turnpike', 'Monsey', 'NY', '10952', '845-356-9423', 'Kent', '24"', 'Black', '2022-12-13', '2023-08-16', 'Summer', 103.00, 195.00, 'Used', 'Minor Fixup'
+UNION SELECT 'Yehuda', 'Jacobs', '1650 Lexington Avenue', 'Lakewood', 'NJ', '08701', '732-930-8054', 'Schwinn', '20"', 'Blue', '2022-04-09', '2022-07-20', 'Summer', 42.00, 98.00, 'Used', 'Major Fixup';
 GO
 
 -- Reporting Queries -------------------------------------------------------
