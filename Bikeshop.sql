@@ -141,21 +141,3 @@ FROM BikeSales
 GROUP BY CompanyName
 ORDER BY TimesSold DESC, CompanyName;
 GO
-
--- Maintenance Queries -----------------------------------------------------
-
--- Example: update a customer's phone number when they provide new contact details
--- UPDATE BikeSales
--- SET CustomerPhoneNumber = '000-000-0000'
--- WHERE CustomerFirstName = 'CustomerFirst' AND CustomerLastName = 'CustomerLast';
-
--- Example: adjust the sale price of a bike (still protected by the price cap constraint)
--- UPDATE BikeSales
--- SET SalePrice = 275.00
--- WHERE BikeSalesId = 1;
-
--- Example: record the condition of a used bike that was missing that information
--- UPDATE BikeSales
--- SET BikeCondition = 'Minor Fixup'
--- WHERE BikeSalesId = 2 AND BikeStatus = 'Used';
-GO
