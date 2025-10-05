@@ -1,71 +1,71 @@
 -- Bikeshop business scenario implementation using a single table
 -- Schema, constraints, sample data, and reporting queries for SQL Server
 
-IF DB_ID('BikeSales') IS NOT NULL
-    DROP DATABASE BikeSales;
+DROP DATABASE IF EXISTS [BikeSales.db];
 GO
 
-CREATE DATABASE BikeSales;
+CREATE DATABASE [BikeSales.db];
 GO
 
-USE BikeSales;
+USE [BikeSales.db];
 GO
 
 DROP TABLE IF EXISTS dbo.BikeSales;
 GO
 
 CREATE TABLE dbo.BikeSales (
-    BikeSalesID INT NOT NULL IDENTITY(1, 1)
-        CONSTRAINT PK_BikeSales PRIMARY KEY,
+    BikeSalesId INT NOT NULL IDENTITY(1, 1) PRIMARY KEY,
     CustomerFirstName VARCHAR(50) NOT NULL
-        CONSTRAINT CK_BikeSales_CustomerFirstName_NotBlank CHECK (CustomerFirstName <> ''),
+        CONSTRAINT c_BikeSales_CustomerFirstName_NotBlank CHECK (CustomerFirstName <> ''),
     CustomerLastName VARCHAR(50) NOT NULL
-        CONSTRAINT CK_BikeSales_CustomerLastName_NotBlank CHECK (CustomerLastName <> ''),
+        CONSTRAINT c_BikeSales_CustomerLastName_NotBlank CHECK (CustomerLastName <> ''),
     StreetAddress VARCHAR(100) NOT NULL
-        CONSTRAINT CK_BikeSales_StreetAddress_NotBlank CHECK (StreetAddress <> ''),
+        CONSTRAINT c_BikeSales_StreetAddress_NotBlank CHECK (StreetAddress <> ''),
     City VARCHAR(50) NOT NULL
-        CONSTRAINT CK_BikeSales_City_NotBlank CHECK (City <> ''),
+        CONSTRAINT c_BikeSales_City_NotBlank CHECK (City <> ''),
     CustomerState CHAR(2) NOT NULL
-        CONSTRAINT CK_BikeSales_CustomerState_NotBlank CHECK (CustomerState <> ''),
-        CONSTRAINT CK_BikeSales_CustomerState_Format CHECK (CustomerState LIKE '[A-Z][A-Z]'),
+        CONSTRAINT c_BikeSales_CustomerState_NotBlank CHECK (CustomerState <> ''),
+        CONSTRAINT c_BikeSales_CustomerState_Format CHECK (CustomerState LIKE '[A-Z][A-Z]'),
     PostalCode CHAR(5) NOT NULL
-        CONSTRAINT CK_BikeSales_PostalCode_NotBlank CHECK (PostalCode <> ''),
-        CONSTRAINT CK_BikeSales_PostalCode_Format CHECK (PostalCode LIKE '[0-9][0-9][0-9][0-9][0-9]'),
+        CONSTRAINT c_BikeSales_PostalCode_NotBlank CHECK (PostalCode <> ''),
+        CONSTRAINT c_BikeSales_PostalCode_Format CHECK (PostalCode LIKE '[0-9][0-9][0-9][0-9][0-9]'),
     CustomerPhoneNumber VARCHAR(15) NOT NULL
-        CONSTRAINT CK_BikeSales_CustomerPhoneNumber_NotBlank CHECK (CustomerPhoneNumber <> ''),
-        CONSTRAINT CK_BikeSales_CustomerPhoneNumber_Format CHECK (CustomerPhoneNumber NOT LIKE '%[^0-9-]%'),
+        CONSTRAINT c_BikeSales_CustomerPhoneNumber_NotBlank CHECK (CustomerPhoneNumber <> ''),
+        CONSTRAINT c_BikeSales_CustomerPhoneNumber_Format CHECK (CustomerPhoneNumber NOT LIKE '%[^0-9-]%'),
+        CONSTRAINT u_BikeSales_CustomerPhoneNumber UNIQUE,
     CompanyName VARCHAR(100) NOT NULL
-        CONSTRAINT CK_BikeSales_CompanyName_NotBlank CHECK (CompanyName <> ''),
+        CONSTRAINT c_BikeSales_CompanyName_NotBlank CHECK (CompanyName <> ''),
     BikeSize VARCHAR(10) NOT NULL
-        CONSTRAINT CK_BikeSales_BikeSize_NotBlank CHECK (BikeSize <> ''),
+        CONSTRAINT c_BikeSales_BikeSize_NotBlank CHECK (BikeSize <> ''),
     BikeColor VARCHAR(50) NOT NULL
-        CONSTRAINT CK_BikeSales_BikeColor_NotBlank CHECK (BikeColor <> ''),
+        CONSTRAINT c_BikeSales_BikeColor_NotBlank CHECK (BikeColor <> ''),
     PurchaseDate DATE NOT NULL
-        CONSTRAINT CK_BikeSales_PurchaseDate_Min CHECK (PurchaseDate >= '2022-03-01'),
+        CONSTRAINT c_BikeSales_PurchaseDate_Min CHECK (PurchaseDate >= '2022-03-01'),
     SaleDate DATE NOT NULL
-        CONSTRAINT CK_BikeSales_SaleDate_Min CHECK (SaleDate >= '2022-06-01'),
-        CONSTRAINT CK_BikeSales_SaleDate_AfterPurchase CHECK (SaleDate >= PurchaseDate),
+        CONSTRAINT c_BikeSales_SaleDate_Min CHECK (SaleDate >= '2022-06-01'),
+        CONSTRAINT c_BikeSales_SaleDate_AfterPurchase CHECK (SaleDate >= PurchaseDate),
     Season VARCHAR(10) NOT NULL
-        CONSTRAINT CK_BikeSales_Season_NotBlank CHECK (Season <> ''),
-        CONSTRAINT CK_BikeSales_Season_Allowed CHECK (Season IN ('Spring', 'Summer', 'Fall', 'Winter')),
-        CONSTRAINT CK_BikeSales_Season_MatchesSale CHECK (
+        CONSTRAINT c_BikeSales_Season_NotBlank CHECK (Season <> ''),
+        CONSTRAINT c_BikeSales_Season_Allowed CHECK (Season IN ('Spring', 'Summer', 'Fall', 'Winter')),
+        CONSTRAINT c_BikeSales_Season_MatchesSale CHECK (
             (Season = 'Spring' AND DATEPART(MONTH, SaleDate) BETWEEN 3 AND 5) OR
             (Season = 'Summer' AND DATEPART(MONTH, SaleDate) BETWEEN 6 AND 8) OR
             (Season = 'Fall' AND DATEPART(MONTH, SaleDate) BETWEEN 9 AND 11) OR
             (Season = 'Winter' AND (DATEPART(MONTH, SaleDate) = 12 OR DATEPART(MONTH, SaleDate) BETWEEN 1 AND 2))
         ),
     PurchasePrice DECIMAL(8, 2) NOT NULL
-        CONSTRAINT CK_BikeSales_PurchasePrice_Positive CHECK (PurchasePrice > 0),
+        CONSTRAINT c_BikeSales_PurchasePrice_Positive CHECK (PurchasePrice > 0),
     SalePrice DECIMAL(8, 2) NOT NULL
-        CONSTRAINT CK_BikeSales_SalePrice_Positive CHECK (SalePrice > 0),
-        CONSTRAINT CK_BikeSales_SalePrice_Cap CHECK (SalePrice <= 3000),
+        CONSTRAINT c_BikeSales_SalePrice_Positive CHECK (SalePrice > 0),
+        CONSTRAINT c_BikeSales_SalePrice_Cap CHECK (SalePrice <= 3000),
     BikeStatus VARCHAR(10) NOT NULL
-        CONSTRAINT CK_BikeSales_BikeStatus_NotBlank CHECK (BikeStatus <> ''),
-        CONSTRAINT CK_BikeSales_BikeStatus_Allowed CHECK (BikeStatus IN ('New', 'Used')),
+        CONSTRAINT c_BikeSales_BikeStatus_NotBlank CHECK (BikeStatus <> ''),
+        CONSTRAINT c_BikeSales_BikeStatus_Allowed CHECK (BikeStatus IN ('New', 'Used')),
     BikeCondition VARCHAR(20) NULL
-        CONSTRAINT CK_BikeSales_BikeCondition_NotBlank CHECK (BikeCondition IS NULL OR BikeCondition <> ''),
-        CONSTRAINT CK_BikeSales_BikeCondition_Allowed CHECK (BikeCondition IS NULL OR BikeCondition IN ('Perfect', 'Minor Fixup', 'Major Fixup', 'Restoration')),
-        CONSTRAINT CK_BikeSales_BikeCondition_Requirement CHECK ((BikeStatus = 'Used' AND BikeCondition IS NOT NULL) OR (BikeStatus = 'New' AND BikeCondition IS NULL))
+        CONSTRAINT c_BikeSales_BikeCondition_NotBlank CHECK (BikeCondition IS NULL OR BikeCondition <> ''),
+        CONSTRAINT c_BikeSales_BikeCondition_Allowed CHECK (BikeCondition IS NULL OR BikeCondition IN ('Perfect', 'Minor Fixup', 'Major Fixup', 'Restoration')),
+        CONSTRAINT c_BikeSales_BikeCondition_Requirement CHECK ((BikeStatus = 'Used' AND BikeCondition IS NOT NULL) OR (BikeStatus = 'New' AND BikeCondition IS NULL)),
+    CONSTRAINT c_BikeSales_CustomerSameDayPurchase CHECK (BikeSalesId > 0)
 );
 GO
 
@@ -151,10 +151,10 @@ GO
 -- Example: adjust the sale price of a bike (still protected by the price cap constraint)
 -- UPDATE BikeSales
 -- SET SalePrice = 275.00
--- WHERE BikeSalesID = 1;
+-- WHERE BikeSalesId = 1;
 
 -- Example: record the condition of a used bike that was missing that information
 -- UPDATE BikeSales
 -- SET BikeCondition = 'Minor Fixup'
--- WHERE BikeSalesID = 2 AND BikeStatus = 'Used';
+-- WHERE BikeSalesId = 2 AND BikeStatus = 'Used';
 GO
